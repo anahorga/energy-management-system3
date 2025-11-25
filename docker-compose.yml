@@ -1,0 +1,163 @@
+version: '3'
+
+services:
+  db_user:
+    image: postgres
+    container_name: db_user
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: sd-user
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-user:/var/lib/postgresql
+    networks:
+      tema1_net:
+
+  userservice:
+    build:
+      context: ./UserService
+      dockerfile: ./Dockerfile
+    container_name: userservice
+    ports:
+      - "8091:8081"
+    environment:
+      - DB_IP=db_user
+      - DB_PORT=5432
+      - DB_DBNAME=sd-user
+      - DB_USER=postgres
+      - DB_PASSWORD=root
+    networks:
+      tema1_net:
+
+  db_device:
+    image: postgres
+    container_name: db_device
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: sd-device
+    ports:
+      - "5434:5432"
+    volumes:
+      - db-device:/var/lib/postgresql
+    networks:
+      tema1_net:
+
+  deviceservice:
+    build:
+      context: ./DeviceService
+      dockerfile: ./Dockerfile
+    container_name: deviceservice
+    ports:
+      - "8092:8082"
+    environment:
+      - DB_IP=db_device
+      - DB_PORT=5432
+      - DB_DBNAME=sd-device
+      - DB_USER=postgres
+      - DB_PASSWORD=root
+    networks:
+      tema1_net: 
+
+  db_authentication:
+    image: postgres
+    container_name: db_authentication
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: sd-authentication
+    ports:
+      - "5435:5432"
+    volumes:
+      - db-authentication:/var/lib/postgresql
+    networks:
+      tema1_net:
+
+  authenticationservice:
+    build:
+      context: ./AuthenticationService
+      dockerfile: ./Dockerfile
+    container_name: authenticationservice
+    ports:
+      - "8093:8083"
+    environment:
+      - DB_IP=db_authentication
+      - DB_PORT=5432
+      - DB_DBNAME=sd-authentication
+      - DB_USER=postgres
+      - DB_PASSWORD=root
+    networks:
+      tema1_net:
+
+  frontend:
+    build:
+      context: ./ems-frontend  # Calea către codul frontend
+      dockerfile: ./Dockerfile   # Dockerfile-ul pe care tocmai l-am creat
+    container_name: frontend
+    networks:
+      - tema1_net
+  db_monitoring:
+    image: postgres
+    container_name: db_monitoring
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: sd-monitoring
+    ports:
+      - "5436:5432"
+    volumes:
+      - db-monitoring:/var/lib/postgresql
+    networks:
+      tema1_net:
+
+  monitoringdevice:
+    build:
+      context: ./MonitoringDevice
+      dockerfile: ./Dockerfile
+    container_name: monitoringdevice
+    ports:
+      - "8094:8084"
+    environment:
+      - DB_IP=db_monitoring
+      - DB_PORT=5432
+      - DB_DBNAME=sd-monitoring
+      - DB_USER=postgres
+      - DB_PASSWORD=root
+    networks:
+      tema1_net:
+      
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: always
+    ports:
+      - "81:80" # The HTTP port
+      # - "443:443" # The HTTPS port
+      - "8081:8080" # Dashboard port
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro" # Traefik can listen to the Docker events
+      - "./traefik.yml:/etc/traefik/traefik.yml:ro" # Static configuration file
+      - "./dynamic:/etc/traefik/dynamic:ro" # Dynamic configuration files
+      - "./logs:/var/log/traefik" # Log files
+    develop: # Enable live reload of dynamic configuration files on Windows, if using Unix based system needs to be commented out
+      watch:
+       - path: ./dynamic                   # watch the whole folder
+         action: restart
+    networks:
+      tema1_net:   
+
+volumes:
+  db-user:
+  db-device:
+  db-authentication:
+  db-monitoring:
+
+networks:
+  tema1_net:
+    external: true

@@ -1,0 +1,102 @@
+http:
+  middlewares:
+    # Middleware pentru CORS
+    cors-headers:
+      headers:
+        accessControlAllowOriginList:
+          - "http://localhost:5173"
+        accessControlAllowMethods:
+          - "GET"
+          - "POST"
+          - "PUT"
+          - "DELETE"
+          - "PATCH"
+          - "OPTIONS"
+        accessControlAllowHeaders:
+          - "Content-Type"
+          - "app-auth"
+          - "Origin"
+          - "Accept"
+        accessControlAllowCredentials: true
+        accessControlMaxAge: 100
+        addVaryHeader: true
+
+    # Middleware pentru forward auth
+    auth-fw:
+      forwardAuth:
+        address: "http://authenticationservice:8083/validate"
+        trustForwardHeader: true
+        authRequestHeaders:
+          - "app-auth"
+
+  # Define URL routing rules, middlewares, and services
+  routers:
+    user-api:
+      rule: "Host(`localhost`) && PathPrefix(`/api/users`)"
+      entryPoints:
+        - web
+      service: user-service
+      middlewares:
+        - cors-headers  # CORS primul!
+        - auth-fw       # Auth al doilea
+
+    device-api:
+      rule: "Host(`localhost`) && PathPrefix(`/api/devices`)"
+      entryPoints:
+        - web
+      service: device-service
+      middlewares:
+        - cors-headers  # CORS primul!
+        - auth-fw       # Auth al doilea
+        
+    authentication-api:
+      rule: "Host(`localhost`) && PathPrefix(`/api/auth`)"
+      entryPoints:
+        - web
+      service: authentication-service
+      middlewares:
+        - cors-headers  # CORS și pentru auth service
+    
+    monitoring-api:
+      rule: "Host(`localhost`) && PathPrefix(`/api/monitoring`)"
+      entryPoints:
+        - web
+      service: monitoring-service
+      middlewares:
+        - cors-headers  # CORS primul!
+        - auth-fw       # Auth al doilea
+
+    frontend-app:
+      rule: "Host(`localhost`)" # <-- Prinde tot traficul rămas
+      priority: 1 # <-- Prioritate mai mică
+      entryPoints: [web]
+      service: frontend-service
+      middlewares:
+        - cors-headers
+
+  services:
+    user-service:
+      loadBalancer:
+        servers:
+          - url: "http://userservice:8081"
+
+    device-service:
+      loadBalancer:
+        servers:
+          - url: "http://deviceservice:8082"
+      
+    authentication-service:
+      loadBalancer:
+        servers:
+          - url: "http://authenticationservice:8083"
+
+    monitoring-service:
+      loadBalancer:
+        servers:
+          - url: "http://monitoringdevice:8084"
+
+    frontend-service:
+      loadBalancer:
+        servers:
+          # Numele containerului 'frontend' și portul 80 (din Nginx)
+          - url: "http://frontend:80"
