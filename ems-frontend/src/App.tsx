@@ -7,6 +7,10 @@ import Admin from "./pages/AdminDashboard";
 import Client from "./pages/ClientDashboard";
 import { DeviceStatistics } from "./pages/DeviceStatistics";
 import Register from "./pages/Register";
+
+import { Chat } from "./components/Chat";
+
+
 const HomeRedirect: React.FC = () => {
     const { role } = useAuth();
     const target = useMemo(() => (role === "ADMIN" ? "/admin" : "/client"), [role]);
@@ -17,23 +21,27 @@ const HomeRedirect: React.FC = () => {
 
 function AppInner(){
     return (
-        <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/admin" element={<ProtectedRoute allow={["ADMIN"]}><Admin /></ProtectedRoute>} />
-            <Route path="/client" element={<ProtectedRoute allow={["USER"]}><Client /></ProtectedRoute>} />
-            <Route
-                path="/statistics/:deviceId"
-                element={
-                    <ProtectedRoute allow={["ADMIN", "USER"]}>
-                        <DeviceStatistics />
-                    </ProtectedRoute>
-                }
-            />
+        <>
+            <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/admin" element={<ProtectedRoute allow={["ADMIN"]}><Admin /></ProtectedRoute>} />
+                <Route path="/client" element={<ProtectedRoute allow={["USER"]}><Client /></ProtectedRoute>} />
+                <Route
+                    path="/statistics/:deviceId"
+                    element={
+                        <ProtectedRoute allow={["ADMIN", "USER"]}>
+                            <DeviceStatistics />
+                        </ProtectedRoute>
+                    }
+                />
 
-            <Route path="/*" element={<HomeRedirect />} />
+                <Route path="/*" element={<HomeRedirect />} />
 
-        </Routes>
+            </Routes>
+
+            <Chat />
+        </>
     );
 }
 

@@ -131,6 +131,16 @@ services:
       - DB_PASSWORD=root
     networks:
       tema1_net:
+
+  chatservice:
+    build:
+      context: ./ChatService
+      dockerfile: ./Dockerfile
+    container_name: chatservice
+    ports:
+      - "8089:8089"
+    networks:
+      tema1_net:
       
   traefik:
     image: traefik:v3.0

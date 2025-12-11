@@ -74,6 +74,14 @@ http:
       middlewares:
         - cors-headers
 
+    chat-ws:
+      rule: "Host(`localhost`) && PathPrefix(`/chat-socket`)"
+      entryPoints:
+        - web
+      service: chat-service
+      middlewares:
+        - cors-headers
+
   services:
     user-service:
       loadBalancer:
@@ -100,3 +108,8 @@ http:
         servers:
           # Numele containerului 'frontend' și portul 80 (din Nginx)
           - url: "http://frontend:80"
+
+    chat-service:
+      loadBalancer:
+        servers:
+          - url: "http://chatservice:8089"
