@@ -31,13 +31,16 @@ public class ChatController {
         RULES.put("bye", "Goodbye! Have a great day!");
     }
 
-    /* --- TAB-UL 1: Discuția cu Robotul --- */
+    /* --- TAB-UL 1: Discuția cu Robotul (PRIVATĂ per user) --- */
     @MessageMapping("/chat/bot")
     public void processBotMessage(@Payload ChatMessage message) throws InterruptedException {
-        // 1. Broadcast mesajul utilizatorului (ca să apară în lista lui)
-        messagingTemplate.convertAndSend("/topic/bot", message);
+        // Destinația PRIVATĂ pentru userul curent
+        String destination = "/topic/bot." + message.getSenderId();
 
-        // Dacă mesajul e trimis chiar de sistem, ne oprim
+        // 1. Trimitem mesajul utilizatorului DOAR pe canalul lui
+        messagingTemplate.convertAndSend(destination, message);
+
+        // Dacă mesajul e trimis chiar de sistem/bot, ne oprim
         if ("System".equals(message.getSenderId()) || "RobBot".equals(message.getSenderId())) {
             return;
         }
@@ -55,23 +58,24 @@ public class ChatController {
 
         // 3. Fallback (dacă nu găsim regulă) - Aici ar veni AI-ul
         if (responseContent == null) {
-            responseContent = "I don't understand '" + message.getContent() + "'. Please try keywords like 'consumption' or 'device', or ask an Admin.";
+            responseContent = "I don't understand '" + message.getContent() +
+                    "'. Please try keywords like 'consumption' or 'device', or ask an Admin.";
         }
 
         // 4. Simulăm un mic delay
         Thread.sleep(500);
 
-        // 5. Trimitem răspunsul robotului
+        // 5. Trimitem răspunsul robotului DOAR userului respectiv
         ChatMessage response = ChatMessage.builder()
                 .senderId("RobBot")
                 .content(responseContent)
                 .isAdmin(false)
                 .build();
 
-        messagingTemplate.convertAndSend("/topic/bot", response);
+        messagingTemplate.convertAndSend(destination, response);
     }
 
-    /* --- TAB-UL 2: Discuția cu Adminul --- */
+    /* --- TAB-UL 2: Discuția cu Adminul (la fel ca până acum) --- */
     @MessageMapping("/chat/admin")
     public void processAdminMessage(@Payload ChatMessage message) {
         // Aici doar dăm forward. Adminul și Userul vorbesc liber.
