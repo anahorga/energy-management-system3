@@ -1,6 +1,7 @@
 package com.example.chatservice.controller;
 
 import com.example.chatservice.dto.ChatMessage;
+import com.example.chatservice.service.AiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -15,8 +16,9 @@ import java.util.Map;
 public class ChatController {
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final AiService aiService; // Injectăm serviciul AI
 
-    // Reguli simple pentru Robot (min 10 reguli pot fi adăugate aici)
+    // 1. PĂSTRĂM REGULILE TALE
     private static final Map<String, String> RULES = new HashMap<>();
     static {
         RULES.put("hello", "Hello! I am RobBot. How can I assist you today?");
@@ -31,21 +33,18 @@ public class ChatController {
         RULES.put("bye", "Goodbye! Have a great day!");
     }
 
-    /* --- TAB-UL 1: Discuția cu Robotul (PRIVATĂ per user) --- */
     @MessageMapping("/chat/bot")
-    public void processBotMessage(@Payload ChatMessage message) throws InterruptedException {
-        // Destinația PRIVATĂ pentru userul curent
+    public void processBotMessage(@Payload ChatMessage message) {
         String destination = "/topic/bot." + message.getSenderId();
 
-        // 1. Trimitem mesajul utilizatorului DOAR pe canalul lui
+        // Echo la mesajul utilizatorului
         messagingTemplate.convertAndSend(destination, message);
 
-        // Dacă mesajul e trimis chiar de sistem/bot, ne oprim
         if ("System".equals(message.getSenderId()) || "RobBot".equals(message.getSenderId())) {
             return;
         }
 
-        // 2. Căutăm regula
+        // 2. LOGICĂ HIBRIDĂ: Întâi căutăm în reguli
         String responseContent = null;
         String lowerContent = message.getContent().toLowerCase();
 
@@ -56,29 +55,32 @@ public class ChatController {
             }
         }
 
-        // 3. Fallback (dacă nu găsim regulă) - Aici ar veni AI-ul
-        if (responseContent == null) {
-            responseContent = "I don't understand '" + message.getContent() +
-                    "'. Please try keywords like 'consumption' or 'device', or ask an Admin.";
+        // 3. Dacă am găsit o regulă, răspundem imediat (fără AI)
+        if (responseContent != null) {
+            sendRobBotResponse(destination, responseContent);
+        } else {
+            // 4. Dacă NU am găsit regulă, apelăm AI-ul (asincron)
+            new Thread(() -> {
+                String aiResponse = aiService.generateResponse(message.getContent());
+                sendRobBotResponse(destination, aiResponse);
+            }).start();
         }
+    }
 
-        // 4. Simulăm un mic delay
-        Thread.sleep(500);
+    private void sendRobBotResponse(String destination, String content) {
+        // Simulăm un mic delay pentru naturalețe (opțional)
+        try { Thread.sleep(300); } catch (InterruptedException e) {}
 
-        // 5. Trimitem răspunsul robotului DOAR userului respectiv
         ChatMessage response = ChatMessage.builder()
                 .senderId("RobBot")
-                .content(responseContent)
+                .content(content)
                 .isAdmin(false)
                 .build();
-
         messagingTemplate.convertAndSend(destination, response);
     }
 
-    /* --- TAB-UL 2: Discuția cu Adminul (la fel ca până acum) --- */
     @MessageMapping("/chat/admin")
     public void processAdminMessage(@Payload ChatMessage message) {
-        // Aici doar dăm forward. Adminul și Userul vorbesc liber.
         messagingTemplate.convertAndSend("/topic/admin", message);
     }
 }
