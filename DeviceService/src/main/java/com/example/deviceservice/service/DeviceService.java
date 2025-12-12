@@ -65,6 +65,9 @@ public class DeviceService {
                 if (!userRepository.existsById(id)) {
                         throw new UserNotFoundException("User with id " + id + " not found");
                 }
+                List<DeviceEntity> devicesForUser=deviceRepository.findAllByUser_Id(id);
+                for(DeviceEntity device:devicesForUser)
+                        deleteDevice(device.getId());
                 userRepository.deleteById(id);
         }
 
