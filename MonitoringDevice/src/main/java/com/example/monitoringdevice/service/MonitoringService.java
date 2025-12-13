@@ -63,9 +63,13 @@ public class MonitoringService {
 
     }
 
-    public void updateDevice(DeviceDto deviceDto) {
+    public void updateDevice(DeviceDto deviceDTO) {
+        DeviceEntity existingDevice = deviceRepository.findById(deviceDTO.getId())
+                .orElseThrow(() -> new RuntimeException("Device doesn't exist"));
 
-        DeviceEntity deviceEntity = deviceMapper.deviceDtoToDeviceEntity(deviceDto);
-       deviceRepository.save(deviceEntity);
+        existingDevice.setConsumption(deviceDTO.getConsumption());
+        existingDevice.setUserId(deviceDTO.getUserId());
+
+        deviceRepository.save(existingDevice);
     }
 }
