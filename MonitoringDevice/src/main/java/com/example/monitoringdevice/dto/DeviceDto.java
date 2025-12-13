@@ -8,4 +8,8 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DeviceDto {
     private Long id;
+
+    private Double consumption;
+
+    private Long userId;
 }

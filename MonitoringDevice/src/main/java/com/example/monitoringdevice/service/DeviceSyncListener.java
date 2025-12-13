@@ -29,6 +29,10 @@ public class DeviceSyncListener {
                 monitoringService.deleteDevice(event.getId());
                 System.out.println(" [Monitoring] Device deleted successfully.");
             }
+            else if ("device.update".equals(key)) {
+                monitoringService.updateDevice(event);
+                System.out.println(" [Monitoring] Device updated successfully.");
+            }
         } catch (Exception e) {
             System.err.println(" [Monitoring] Failed to process sync event: " + e.getMessage());
 

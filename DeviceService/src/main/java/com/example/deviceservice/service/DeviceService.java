@@ -1,6 +1,7 @@
 package com.example.deviceservice.service;
 
 import com.example.deviceservice.dto.DeviceDto;
+import com.example.deviceservice.dto.MonitoringDeviceDto;
 import com.example.deviceservice.dto.UserDto;
 import com.example.deviceservice.entity.DeviceEntity;
 import com.example.deviceservice.entity.UserEntity;
@@ -52,8 +53,10 @@ public class DeviceService {
 
                 DeviceEntity savedDevice=deviceRepository.save(deviceEntity);
 
-                DeviceDto event=DeviceDto.builder()
+                MonitoringDeviceDto event=MonitoringDeviceDto.builder()
                         .id(savedDevice.getId())
+                        .consumption(savedDevice.getConsumption())
+                        .userId(savedDevice.getUser().getId())
                         .build();
 
                 rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, "device.insert", event);
@@ -110,6 +113,15 @@ public class DeviceService {
                 }
 
                 DeviceEntity saved = deviceRepository.save(device);
+
+                MonitoringDeviceDto event=MonitoringDeviceDto.builder()
+                        .id(saved.getId())
+                        .consumption(saved.getConsumption())
+                        .userId(saved.getUser().getId())
+                        .build();
+                rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, "device.update", event);
+
+
                 return deviceMapper.deviceEntityToDeviceDto(saved);
         }
 

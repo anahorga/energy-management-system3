@@ -25,4 +25,11 @@ public class DeviceEntity {
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     private List<MonitoringEntity> consumptionValues;
+
+
+    @Column(name = "consumption", nullable = false)
+    private Double consumption;
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 }

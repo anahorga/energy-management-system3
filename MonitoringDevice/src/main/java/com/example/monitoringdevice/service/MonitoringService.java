@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,6 +45,7 @@ public class MonitoringService {
         }
         deviceRepository.deleteById(id);
     }
+    @Transactional(readOnly = true)
     public List<MonitoringDto> getAllByDeviceIdAndTimestamp(Long id, LocalDate day)
     {
         if (!deviceRepository.existsById(id)) {
@@ -61,4 +63,9 @@ public class MonitoringService {
 
     }
 
+    public void updateDevice(DeviceDto deviceDto) {
+
+        DeviceEntity deviceEntity = deviceMapper.deviceDtoToDeviceEntity(deviceDto);
+       deviceRepository.save(deviceEntity);
+    }
 }
