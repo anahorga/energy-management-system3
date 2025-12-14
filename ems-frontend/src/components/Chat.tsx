@@ -155,11 +155,17 @@ export const Chat: React.FC = () => {
         if (myRole === "ADMIN") {
             if (msg.senderId !== myUser) {
                 // Admin primește mesaj de la User
-                setCurrentChatUser(() => {
-                    // Dacă e un user nou, resetăm sau adăugăm (aici adăugăm)
-                    return msg.senderId;
+                setCurrentChatUser((prevChatUser) => {
+                    // Dacă e un user nou, resetăm conversația (restart)
+                    if (prevChatUser !== msg.senderId) {
+                        setAdminMessages([msg]); // Punem doar noul mesaj
+                        return msg.senderId;     // Schimbăm userul curent
+                    } else {
+                        // Dacă e același user, adăugăm mesajul la lista existentă
+                        setAdminMessages(prev => [...prev, msg]);
+                        return prevChatUser;
+                    }
                 });
-                setAdminMessages(prev => [...prev, msg]);
 
                 setIsOpen(currentIsOpen => {
                     if (!currentIsOpen) setHasUnread(true);
