@@ -101,7 +101,10 @@ http:
     monitoring-service:
       loadBalancer:
         servers:
-          - url: "http://monitoringdevice:8084"
+          - url: "http://monitoring-1:8084"
+          - url: "http://monitoring-2:8084"
+          - url: "http://monitoring-3:8084"
+          - url: "http://monitoring-4:8084"
 
     frontend-service:
       loadBalancer:

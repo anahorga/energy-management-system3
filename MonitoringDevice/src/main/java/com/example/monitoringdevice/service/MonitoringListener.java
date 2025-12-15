@@ -30,7 +30,7 @@ public class MonitoringListener {
 
 
 
-    @RabbitListener(queues = RabbitConfig.DEVICE_MEASUREMENTS_QUEUE)
+    @RabbitListener(queues = "${app.monitoring.queue}")
     public void handleMessage(MonitoringDto dto) {
         try {
             MonitoringEntity monitoringEntity = monitoringMapper.monitoringDtoToMonitoringEntity(dto);

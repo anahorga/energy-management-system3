@@ -116,19 +116,75 @@ services:
     networks:
       tema1_net:
 
-  monitoringdevice:
+  monitoring-1:
     build:
       context: ./MonitoringDevice
       dockerfile: ./Dockerfile
-    container_name: monitoringdevice
-    ports:
-      - "8094:8084"
+    container_name: monitoring-1
     environment:
       - DB_IP=db_monitoring
       - DB_PORT=5432
       - DB_DBNAME=sd-monitoring
       - DB_USER=postgres
       - DB_PASSWORD=root
+      - SERVER_PORT=8084
+      - QUEUE_NAME=q.monitoring.0
+    networks:
+      - tema1_net
+    
+  monitoring-2:
+    build:
+      context: ./MonitoringDevice
+      dockerfile: ./Dockerfile
+    container_name: monitoring-2
+    environment:
+      - DB_IP=db_monitoring
+      - DB_PORT=5432
+      - DB_DBNAME=sd-monitoring
+      - DB_USER=postgres
+      - DB_PASSWORD=root
+      - SERVER_PORT=8084
+      - QUEUE_NAME=q.monitoring.1
+    networks:
+      - tema1_net
+
+  monitoring-3:
+    build:
+      context: ./MonitoringDevice
+      dockerfile: ./Dockerfile
+    container_name: monitoring-3
+    environment:
+      - DB_IP=db_monitoring
+      - DB_PORT=5432
+      - DB_DBNAME=sd-monitoring
+      - DB_USER=postgres
+      - DB_PASSWORD=root
+      - SERVER_PORT=8084
+      - QUEUE_NAME=q.monitoring.2
+    networks:
+      - tema1_net
+
+  monitoring-4:
+    build:
+      context: ./MonitoringDevice
+      dockerfile: ./Dockerfile
+    container_name: monitoring-4
+    environment:
+      - DB_IP=db_monitoring
+      - DB_PORT=5432
+      - DB_DBNAME=sd-monitoring
+      - DB_USER=postgres
+      - DB_PASSWORD=root
+      - SERVER_PORT=8084
+      - QUEUE_NAME=q.monitoring.3
+    networks:
+      - tema1_net
+    
+  loadbalancerservice:
+    build:
+      context: ./LoadBalancerService
+      dockerfile: ./Dockerfile
+    container_name: loadbalancerservice
     networks:
       tema1_net:
 
